@@ -1,17 +1,7 @@
 import { Request, Response } from 'express';
 import Post from '../models/Post';
 import { errorHandler } from '../utils/errorHandler';
-
-export const createPost = async (req: Request, res: Response) => {
-  const { content, imageUrl } = req.body;
-  const userId = (req as any).user.id; // Diambil dari middleware auth
-  try {
-    const post = await Post.create({ content, imageUrl, userId });
-    res.status(201).json(post);
-  } catch (error) {
-    errorHandler(res, 500, 'Failed to create post');
-  }
-};
+import { Sequelize } from 'sequelize';
 
 export const getPosts = async (req: Request, res: Response) => {
   try {
@@ -22,9 +12,52 @@ export const getPosts = async (req: Request, res: Response) => {
   }
 };
 
+export const getPostDetails = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const userId = (req as any).user.id;
+  try {
+    const post = await Post.findOne({ where: { id, userId } });
+    if (!post) {
+      return errorHandler(res, 404, 'Post not found');
+    }
+    res.json(post);
+  } catch (error) {
+    errorHandler(res, 500, 'Failed to fetch post');
+  }
+};
+
+export const createPost = async (req: Request, res: Response) => {
+  const { content, imageUrl } = req.body;
+  const userId = (req as any).user.id;
+  try {
+    const post = await Post.create({ content, imageUrl, userId });
+    res.status(201).json(post);
+  } catch (error) {
+    errorHandler(res, 500, 'Failed to create post');
+  }
+};
+
+export const updatePost = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { content, imageUrl } = req.body;
+  const userId = (req as any).user.id;
+  try {
+    const [updatedCount] = await Post.update(
+      { content, imageUrl },
+      { where: { id, userId } }
+    );
+    if (updatedCount === 0) {
+      return errorHandler(res, 404, 'Post not found');
+    }
+    res.json({ message: 'Post updated successfully' });
+  } catch (error) {
+    errorHandler(res, 500, 'Failed to update post');
+  }
+};
+
 export const deletePost = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = (req as any).user.id; // Diambil dari middleware auth
+  const userId = (req as any).user.id;
   try {
     const post = await Post.findOne({ where: { id, userId } });
     if (!post) {
@@ -34,5 +67,25 @@ export const deletePost = async (req: Request, res: Response) => {
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     errorHandler(res, 500, 'Failed to delete post');
+  }
+};
+
+export const votePost = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { vote } = req.body;
+  try {
+    if (vote !== 1 && vote !== -1) {
+      return errorHandler(res, 400, 'Invalid vote value, must be 1 or -1');
+    }
+    const [updatedCount] = await Post.update(
+      { vote: Sequelize.literal(`vote + ${vote}`) },
+      { where: { id } }
+    );
+    if (updatedCount === 0) {
+      return errorHandler(res, 404, 'Post not found');
+    }
+    res.json({ message: 'Post voted successfully' });
+  } catch (error) {
+    errorHandler(res, 500, 'Failed to vote post');
   }
 };

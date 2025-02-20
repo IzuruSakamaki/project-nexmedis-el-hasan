@@ -1,5 +1,4 @@
-import { DataTypes, Model } from 'sequelize';
-import sequelize from '../configs/db';
+import { Model } from 'sequelize';
 
 class Comment extends Model {
   public id!: number;
@@ -7,15 +6,5 @@ class Comment extends Model {
   public userId!: number;
   public postId!: number;
 }
-
-Comment.init(
-  {
-    content: { type: DataTypes.TEXT, allowNull: false },
-  },
-  {
-    sequelize,
-    modelName: 'Comment',
-  }
-);
 
 export default Comment;

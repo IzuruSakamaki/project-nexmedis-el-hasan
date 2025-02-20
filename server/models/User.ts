@@ -1,6 +1,5 @@
-import { DataTypes, Model } from 'sequelize';
+import { Model } from 'sequelize';
 import bcrypt from 'bcryptjs';
-import sequelize from '../configs/db';
 
 class User extends Model {
   public id!: number;
@@ -11,21 +10,5 @@ class User extends Model {
     return bcrypt.compare(password, this.password);
   }
 }
-
-User.init(
-  {
-    username: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-  },
-  {
-    sequelize,
-    modelName: 'User',
-    hooks: {
-      beforeCreate: async (user: User) => {
-        user.password = await bcrypt.hash(user.password, 10);
-      },
-    },
-  }
-);
 
 export default User;

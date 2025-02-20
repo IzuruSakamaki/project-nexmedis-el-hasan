@@ -4,7 +4,7 @@ import { errorHandler } from '../utils/errorHandler';
 
 export const createComment = async (req: Request, res: Response) => {
   const { content, postId } = req.body;
-  const userId = (req as any).user.id; // Diambil dari middleware auth
+  const userId = (req as any).user.id;
   try {
     const comment = await Comment.create({ content, userId, postId });
     res.status(201).json(comment);
@@ -15,7 +15,7 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const deleteComment = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = (req as any).user.id; // Diambil dari middleware auth
+  const userId = (req as any).user.id;
   try {
     const comment = await Comment.findOne({ where: { id, userId } });
     if (!comment) {
