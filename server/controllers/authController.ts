@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import { errorHandler } from '../utils/errorHandler';
 
 export const register = async (req: Request, res: Response) => {
   const { username, password } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ username, hashedPassword });
+    await User.create({ username: username, password });
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
+    console.log(`${error}`)
     errorHandler(res, 500, 'Registration failed');
   }
 };

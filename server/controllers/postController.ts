@@ -2,10 +2,26 @@ import { Request, Response } from 'express';
 import Post from '../models/Post';
 import { errorHandler } from '../utils/errorHandler';
 import { Sequelize } from 'sequelize';
+import User from '../models/User';
+import Comment from '../models/Comment';
 
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await Post.findAll();
+    const posts = await Post.findAll({
+      include: [
+        {
+          model: Comment,
+          as: 'comments',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['username'],
+            },
+          ],
+        },
+      ],
+    });
     res.json(posts);
   } catch (error) {
     errorHandler(res, 500, 'Failed to fetch posts');
@@ -16,7 +32,22 @@ export const getPostDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
   const userId = (req as any).user.id;
   try {
-    const post = await Post.findOne({ where: { id, userId } });
+    const post = await Post.findOne({ 
+      where: { id, userId },
+      include: [
+        {
+          model: Comment,
+          as: 'comments',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['username'],
+            },
+          ],
+        },
+      ],
+    });
     if (!post) {
       return errorHandler(res, 404, 'Post not found');
     }
