@@ -1,18 +1,18 @@
 import { DataTypes, Model } from 'sequelize';
 import User from './User';
+import Post from './Post';
 import sequelize from '../configs/database';
 
-class Post extends Model {
+class Vote extends Model {
   public id!: number;
-  public content!: string;
-  public imageUrl!: string | null;
-  public vote!: number;
+  public counter!: number;
   public userId!: number;
+  public postId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
-Post.init(
+Vote.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -20,15 +20,7 @@ Post.init(
       autoIncrement: true,
       allowNull: false,
     },
-    content: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    imageUrl: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    vote: {
+    counter: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
@@ -38,6 +30,15 @@ Post.init(
       allowNull: false,
       references: {
         model: 'users',
+        key: 'id',
+      },
+      onDelete: 'CASCADE',
+    },
+    postId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'posts',
         key: 'id',
       },
       onDelete: 'CASCADE',
@@ -55,14 +56,19 @@ Post.init(
   },
   {
     sequelize,
-    modelName: 'post',
+    modelName: 'vote',
     timestamps: true,
   }
 );
 
-Post.belongsTo(User, {
+Vote.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user',
 });
 
-export default Post;
+Vote.belongsTo(Post, {
+  foreignKey: 'postId',
+  as: 'post',
+});
+
+export default Vote;

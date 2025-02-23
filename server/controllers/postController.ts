@@ -1,25 +1,14 @@
 import { Request, Response } from 'express';
 import Post from '../models/Post';
 import { errorHandler } from '../utils/errorHandler';
-import { Sequelize } from 'sequelize';
 import User from '../models/User';
 import Comment from '../models/Comment';
 
 export const getPosts = async (req: Request, res: Response) => {
   try {
     const posts = await Post.findAll({
-      include: [
-        {
-          model: Comment,
-          as: 'comments',
-          include: [
-            {
-              model: User,
-              as: 'user',
-              attributes: ['username'],
-            },
-          ],
-        },
+      order: [
+        ['createdAt', 'DESC'],
       ],
     });
     res.json(posts);
@@ -33,7 +22,7 @@ export const getPostDetails = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
   try {
     const post = await Post.findOne({ 
-      where: { id, userId },
+      where: { id },
       include: [
         {
           model: Comment,
@@ -54,6 +43,22 @@ export const getPostDetails = async (req: Request, res: Response) => {
     res.json(post);
   } catch (error) {
     errorHandler(res, 500, 'Failed to fetch post');
+  }
+};
+
+export const getPostsByUser = async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  console.log(userId)
+  try {
+    const posts = await Post.findAll({ 
+      where: { userId },
+      order: [
+        ['createdAt', 'DESC'],
+      ],
+    });
+    res.json(posts);
+  } catch (error) {
+    errorHandler(res, 500, 'Failed to fetch posts');
   }
 };
 
@@ -98,25 +103,5 @@ export const deletePost = async (req: Request, res: Response) => {
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     errorHandler(res, 500, 'Failed to delete post');
-  }
-};
-
-export const votePost = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { vote } = req.body;
-  try {
-    if (vote !== 1 && vote !== -1) {
-      return errorHandler(res, 400, 'Invalid vote value, must be 1 or -1');
-    }
-    const [updatedCount] = await Post.update(
-      { vote: Sequelize.literal(`vote + ${vote}`) },
-      { where: { id } }
-    );
-    if (updatedCount === 0) {
-      return errorHandler(res, 404, 'Post not found');
-    }
-    res.json({ message: 'Post voted successfully' });
-  } catch (error) {
-    errorHandler(res, 500, 'Failed to vote post');
   }
 };

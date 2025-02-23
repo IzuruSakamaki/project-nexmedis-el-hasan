@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
-router.delete('/:id', authMiddleware, deleteUser);
+router.delete('/', authMiddleware, deleteUser);
 
 export default router;
